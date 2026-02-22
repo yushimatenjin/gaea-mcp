@@ -1,22 +1,7 @@
-# GAEA MCP Server
+# GAEA MCP Server — 開発メモ
 
-Gaea 2.0 terrain generation tool の MCP サーバー。
+## 重要な技術的制約
 
-## Development
-```bash
-npm run dev          # tsx でサーバー起動
-npx tsc --noEmit     # 型チェック
-```
-
-## Structure
-```
-src/
-  config.ts       - Gaea インストールパス自動検出
-  node-types.ts   - ノードタイプレジストリ
-  terrain-io.ts   - .terrain JSON 読み書き (カスタムシリアライザ)
-  server.ts       - MCP サーバー + LLM向け instructions
-```
-
-## Key Design Decision
-- LLM が知るべき制約 (ワークフロー、ノードカテゴリ、接続ルール等) は全て `server.ts` の `SERVER_INSTRUCTIONS` とツール description に記述。CLAUDE.md ではなくMCPプロトコル経由で伝達される。
-- .terrain ファイルの $id 順序制約は `terrain-io.ts` の `serializeJson()` で自動処理。LLM 側の対応不要。
+- **$id 順序**: Gaea の .terrain (Newtonsoft.Json) は `$id` がオブジェクトの最初のプロパティであることを要求する。`terrain-io.ts` の `serializeJson()` で自動処理済み。`JSON.stringify` を直接使わないこと。
+- **LLM向け情報**: ワークフロー、ノードカテゴリ、接続ルール等は `server.ts` の `SERVER_INSTRUCTIONS` とツール description に記述。CLAUDE.md ではなく MCP プロトコル経由で LLM に伝達される。
+- **ノードレジストリ**: `node-types.ts` の定義は Gaea 2.0 Examples (59ファイル) のスキャンから生成。`scripts/scan-examples.ts` で再スキャン可能。

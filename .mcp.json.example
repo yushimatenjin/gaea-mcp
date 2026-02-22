@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "gaea": {
+      "command": "npx",
+      "args": ["tsx", "src/server.ts"],
+      "env": {
+        "GAEA_INSTALL_DIR": "C:/Users/<ユーザー名>/AppData/Local/Programs/Gaea 2.0"
+      }
+    }
+  }
+}
