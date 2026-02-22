@@ -27,28 +27,32 @@ Gaea is a node-based procedural terrain tool. You can create, edit, and build .t
 4. Use set_node_property to tweak parameters (Seed, Duration, Scale, etc.).
 5. Use build_terrain to render the final terrain via Gaea.Swarm.exe.
 
-## Node Categories
-- Primitive: Perlin, Noise, Voronoi, RadialGradient, File — base generators
-- Terrain: Mountain, Ridge, Canyon, Volcano, Island — landscape generators
-- Simulate: Erosion, Erosion2, Thermal, Snowfield, Rivers — physics simulations
-- Surface: Craggy, Sandstone, Terraces, Roughen — surface detail
-- Modify: Warp, Shaper, Transform, Blur, Clamp — transformations
-- Derive: Slope, Height, Curvature, FlowMap — extract data masks
-- Colorize: SatMap, Synth, CLUTer, ColorErosion — color/texture
-- Utility: Combine, Switch, Route, Chokepoint — graph routing/blending
-- Output: Export, Mesher, Unreal, Unity — export nodes
+## Node Categories (120 types total)
+- Primitive (17): Perlin, Noise, Voronoi, Cellular, Cellular3D, RadialGradient, LinearGradient, Constant, File, MultiFractal, DriftNoise, WaveShine, DotNoise, LineNoise, RockNoise, Gabor, Draw
+- Terrain (14): Mountain, MountainRange, MountainSide, Ridge, Canyon, Plates, Volcano, Island, Crater, CraterField, Uplift, Rugged, Rockscape, Accumulator
+- Simulate (16): Erosion, Erosion2, Thermal, Thermal2, Crumble, Weathering, Snowfield, Snow, Glacier, Rivers, Lake, Sea, Trees, Sediments, Anastomosis, HydroFix
+- Surface (15): Craggy, Sandstone, Stratify, Terraces, FractalTerraces, Roughen, Outcrops, Slump, Stones, Fold, Pockmarks, Texturizer, Scree, Debris, Distress
+- Modify (21): Warp, DirectionalWarp, SlopeWarp, SlopeBlur, Shaper, ThermalShaper, Transform, Blur, Clamp, Curve, Seamless, Repeat, Deflate, Swirl, Dilate, Median, Autolevel, GraphicEQ, Threshold, Filter, Adjust
+- Derive (8): Slope, Height, Curvature, FlowMap, Occlusion, RockMap, Distance, DataExtractor
+- Colorize (15): SatMap, Synth, CLUTer, ColorErosion, Tint, Shade, SuperColor, WaterColor, Cartography, TextureBase, GroundTexture, LightX, HSL, RGBSplit, RGBMerge
+- Utility (10): Combine, Switch, Route, Chokepoint, Mixer, Mask, Transpose, Compare, LoopBegin, LoopEnd
+- Output (4): Export, Mesher, Unreal, Unity
 
 ## Common Patterns
 - Basic mountain: Mountain → Erosion2 → Export
-- Detailed landscape: Mountain → Erosion2 → Snowfield → SatMap → Export
-- Blending: (Mountain + Ridge via Combine) → Erosion → Export
-- Use Erosion2 (newer, more features) over Erosion when possible.
+- Detailed landscape: Mountain → Erosion2 → Snow → SatMap → Export
+- Blending: (Mountain + Ridge via Combine) → Erosion2 → Export
+- Colored terrain: Mountain → Erosion2 → SatMap → Export (use ColorErosion for erosion-based color)
+- Water features: terrain → Rivers/Lake/Sea → Export (each has Water, Depth, Shore outputs)
+- Use Erosion2 (newer) over Erosion, Snow over Snowfield, Thermal2 over Thermal when possible.
 
 ## Connection Rules
 - Connections go from an output port to an input port on another node.
 - Each input port accepts only one connection. Connecting replaces any existing connection.
+- Port types: PrimaryIn (optional input), PrimaryIn Required (must connect), In (secondary), In Required (required secondary), Out (extra output), PrimaryOut (main output).
 - Nodes like Erosion2 have extra outputs: Flow, Wear, Deposits — useful as masks.
-- Combine has: In (primary), Input2 (secondary), Mask (blend mask).
+- Combine has: In (primary), Input2, Input3, Input4 (more inputs), Mask (blend mask).
+- Mixer has: Terrain + Layer1-4 inputs with corresponding Mask1-4 inputs and MaskOut1-4 outputs.
 - Always call list_node_types if unsure about available ports.
 
 ## Important Notes

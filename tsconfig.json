@@ -43,5 +43,6 @@
 
     "moduleResolution": "nodenext",
     "esModuleInterop": true,
-  }
+  },
+  "exclude": ["scripts"]
 }
