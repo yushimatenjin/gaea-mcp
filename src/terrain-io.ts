@@ -93,7 +93,9 @@ function serializeValue(value: Json, depth: number, indent: number): string {
     return "[\n" + items.join(",\n") + "\n" + pad + "]";
   }
 
-  // Object — enforce key ordering: $-prefixed keys first, then the rest
+  // Object — enforce key ordering: $-prefixed keys first, then the rest.
+  // Gaea's native format: $id/$type → custom props (Seed, Method) → Id/Name/Position/Ports/Modifiers.
+  // The spread in addNode() already produces this order; serializeJson preserves it.
   const allKeys = Object.keys(value);
   if (allKeys.length === 0) return "{}";
 
@@ -237,6 +239,7 @@ export function addNode(
     Parent: { $ref: nodeRefId },
   }));
 
+  // Gaea native order: $id, $type, custom props, Id, Name, Position, Ports, Modifiers
   const node: Json = {
     $id: nodeRefId,
     $type: dotnetType,

@@ -38,12 +38,32 @@ Gaea is a node-based procedural terrain tool. You can create, edit, and build .t
 - Utility (10): Combine, Switch, Route, Chokepoint, Mixer, Mask, Transpose, Compare, LoopBegin, LoopEnd
 - Output (4): Export, Mesher, Unreal, Unity
 
+## Recommended Properties
+- Mountain: Scale(0.5–2.0), Height(1–5), Style("Alpine"|"Rugged"|"Smooth")
+- Erosion2: Duration(10–30, higher=deeper channels), Strength(0.2–0.8)
+- Thermal2: Duration(5–15), Strength(0.3–0.7)
+- Rivers: defaults work well, outputs Rivers/Depth/Surface
+- Snow: defaults work well, outputs Snow/Hard/Depth maps
+- Crater: Scale(0.3–0.8), Height(0.5–1.0) — useful for caldera/ring shapes
+- RadialGradient: Scale(0.3–0.8), Height(0.3–0.6) — circular mask
+- Combine: Method("Add"|"Subtract"|"Multiply"|"Max"|"Min"|"Screen"|"Power")
+- SatMap: defaults work well for satellite-style coloring
+- ColorErosion: use with Erosion2 Flow output for erosion-based color
+- Mesher: Format("GLB"|"OBJ"), CreateNormals(true), CreateUVs(true)
+- Export: exports heightmap/texture from connected color node
+
 ## Common Patterns
 - Basic mountain: Mountain → Erosion2 → Export
 - Detailed landscape: Mountain → Erosion2 → Snow → SatMap → Export
 - Blending: (Mountain + Ridge via Combine) → Erosion2 → Export
 - Colored terrain: Mountain → Erosion2 → SatMap → Export (use ColorErosion for erosion-based color)
 - Water features: terrain → Rivers/Lake/Sea → Export (each has Water, Depth, Shore outputs)
+- Circular mountain valley (caldera):
+  RadialGradient + Mountain → Combine(Multiply) + MountainRange → Combine(Max)
+  → Erosion2 → Thermal2 → Craggy → Rivers → Snow → SatMap + ColorErosion → Export + Mesher
+  Note: Surface nodes (Craggy) should come BEFORE simulation nodes (Rivers), not after.
+- Mesh + Texture export:
+  terrain chain → split to Mesher (geometry) AND SatMap → Export (color texture)
 - Use Erosion2 (newer) over Erosion, Snow over Snowfield, Thermal2 over Thermal when possible.
 
 ## Connection Rules
@@ -52,6 +72,7 @@ Gaea is a node-based procedural terrain tool. You can create, edit, and build .t
 - Port types: PrimaryIn (optional input), PrimaryIn Required (must connect), In (secondary), In Required (required secondary), Out (extra output), PrimaryOut (main output).
 - Nodes like Erosion2 have extra outputs: Flow, Wear, Deposits — useful as masks.
 - Combine has: In (primary), Input2, Input3, Input4 (more inputs), Mask (blend mask).
+- Combine Method modes: Add (sum heights), Max (take higher value, best for blending terrains), Multiply (mask-like, zero×anything=zero), Screen (soft additive, good for color), Subtract (carve valleys/grooves), Min (take lower value), Power (contrast).
 - Mixer has: Terrain + Layer1-4 inputs with corresponding Mask1-4 inputs and MaskOut1-4 outputs.
 - Always call list_node_types if unsure about available ports.
 
@@ -276,7 +297,10 @@ server.tool(
   "create_terrain",
   `Create a new empty .terrain file compatible with Gaea 2.2.9.
 The file is saved in the project directory. After creation, use add_node to populate the graph.
-A typical workflow: create_terrain → add_node (generator) → add_node (processor) → connect_nodes.`,
+A typical workflow: create_terrain → add_node (generators: Mountain, RadialGradient)
+→ add_node (processors: Erosion2, Thermal2, Rivers, Craggy, Snow)
+→ add_node (colorizers: SatMap, ColorErosion) → add_node (outputs: Export, Mesher)
+→ connect_nodes to wire the chain.`,
   {
     name: z.string().describe("Filename without extension (e.g. 'my_mountain' creates my_mountain.terrain)"),
   },
@@ -302,6 +326,8 @@ server.tool(
   "add_node",
   `Add a node to the terrain graph. Use list_node_types to see available types and their ports.
 Common types: Mountain, Erosion2, Combine, SatMap, Export.
+Set initial properties for best results, e.g. Mountain: {Scale: 1.5, Height: 3},
+Erosion2: {Duration: 15}, Combine: {Method: "Multiply"}, Mesher: {Format: "GLB"}.
 Position nodes left-to-right by increasing X (spacing ~300-500). Y=26250 for a single row.
 After adding, use connect_nodes to wire it into the graph.`,
   {
@@ -373,7 +399,8 @@ server.tool(
   `Connect two nodes by wiring an output port to an input port.
 Default ports: "Out" → "In" (works for most simple chains).
 For nodes with multiple ports (e.g. Combine has Input2, Mask; Erosion2 outputs Flow, Wear, Deposits),
-specify the port names explicitly.
+specify the port names explicitly. For Combine, set Method property before connecting
+(e.g. "Multiply" for masking, "Max" for blending terrains, "Screen" for color compositing).
 Each input port accepts only one connection — connecting replaces any existing connection on that input.`,
   {
     filename: z.string().describe("Path to .terrain file"),
