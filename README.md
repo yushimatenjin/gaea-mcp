@@ -1,3 +1,5 @@
+
+
 # gaea-mcp
 
 [Gaea 2.0](https://quadspinner.com/) terrain generation tool の MCP サーバー。
@@ -115,7 +117,7 @@ create_terrain → add_node (Mountain) → add_node (Erosion2) → connect_nodes
 | `check_gaea_status` | Gaea の検出状態とパスを確認 |
 | `get_gaea_version` | インストール済み Gaea のバージョン取得 |
 | `list_projects` | プロジェクトディレクトリの `.terrain` ファイル一覧 |
-| `build_terrain` | Gaea.Swarm.exe で地形をビルド |
+| `build_terrain` | Gaea.Swarm.exe で地形をビルド（シード値や変数オーバーライドに対応） |
 | `list_node_types` | 利用可能なノードタイプ一覧（120種、9カテゴリ） |
 | `read_terrain_graph` | `.terrain` ファイルのノード・接続サマリー |
 | `get_node_details` | 特定ノードの詳細プロパティ |
